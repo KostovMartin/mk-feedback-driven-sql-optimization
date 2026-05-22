@@ -281,6 +281,7 @@ function Invoke-CorpusMainRun {
             Model = $Model
             RunId = $RunId
             Monitoring = $true
+            GpuMonitoring = $true
         }
         foreach ($key in $AdditionalParameters.Keys) {
             $scriptParameters[$key] = $AdditionalParameters[$key]

@@ -726,6 +726,14 @@ def test_main_run_module_uses_named_splat_for_private_script_parameters() -> Non
     assert "& $scriptPath @arguments" not in module
 
 
+def test_main_run_module_requests_gpu_monitoring_for_reportable_runs() -> None:
+    module = (REPO_ROOT / "scripts" / "lib" / "ExperimentRun.psm1").read_text(
+        encoding="utf-8"
+    )
+
+    assert "GpuMonitoring = $true" in module
+
+
 def test_main_run_raw_run_data_bundle_uses_zip_and_checksum_without_readme() -> None:
     module = (REPO_ROOT / "scripts" / "lib" / "ExperimentRun.psm1").read_text(
         encoding="utf-8"
