@@ -1,0 +1,10 @@
+[
+  {
+    "query_file": "rule_b5_count_gt_zero_to_exists.sql",
+    "parameter_file": "count_exists_search_params.json",
+    "held_out_parameter_file": "count_exists_held_out_params.json",
+    "expected_candidate_source_detail": "rule:count_gt_zero_to_exists",
+    "workload_label": "controlled_count_exists_static_pilot",
+    "workload_description": "Controlled pilot using the deterministic COUNT(*) > 0 to EXISTS rule with search and held-out parameter separation."
+  }
+]

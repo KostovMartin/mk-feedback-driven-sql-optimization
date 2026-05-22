@@ -1,0 +1,5 @@
+[
+  { "parameter_set_id": "rule-smoke-001", "parameters": [{ "position": "$1", "type": "numeric", "value": 250 }] },
+  { "parameter_set_id": "rule-smoke-002", "parameters": [{ "position": "$1", "type": "numeric", "value": 350 }] },
+  { "parameter_set_id": "rule-smoke-003", "parameters": [{ "position": "$1", "type": "numeric", "value": 450 }] }
+]

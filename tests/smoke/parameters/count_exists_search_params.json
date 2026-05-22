@@ -1,0 +1,12 @@
+[
+  { "parameter_set_id": "controlled-search-001", "parameters": [{ "position": "$1", "type": "numeric", "value": 150 }] },
+  { "parameter_set_id": "controlled-search-002", "parameters": [{ "position": "$1", "type": "numeric", "value": 200 }] },
+  { "parameter_set_id": "controlled-search-003", "parameters": [{ "position": "$1", "type": "numeric", "value": 250 }] },
+  { "parameter_set_id": "controlled-search-004", "parameters": [{ "position": "$1", "type": "numeric", "value": 300 }] },
+  { "parameter_set_id": "controlled-search-005", "parameters": [{ "position": "$1", "type": "numeric", "value": 350 }] },
+  { "parameter_set_id": "controlled-search-006", "parameters": [{ "position": "$1", "type": "numeric", "value": 400 }] },
+  { "parameter_set_id": "controlled-search-007", "parameters": [{ "position": "$1", "type": "numeric", "value": 450 }] },
+  { "parameter_set_id": "controlled-search-008", "parameters": [{ "position": "$1", "type": "numeric", "value": 500 }] },
+  { "parameter_set_id": "controlled-search-009", "parameters": [{ "position": "$1", "type": "numeric", "value": 550 }] },
+  { "parameter_set_id": "controlled-search-010", "parameters": [{ "position": "$1", "type": "numeric", "value": 600 }] }
+]

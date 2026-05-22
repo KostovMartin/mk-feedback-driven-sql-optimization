@@ -1,0 +1,152 @@
+# OS and editor files
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+*.code-workspace
+
+# Logs and local runtime state
+*.log
+logs/
+tmp/
+temp/
+.test-output/
+run-output/
+*.pid
+*.seed
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+*.local
+secrets/
+*.pem
+*.key
+*.pfx
+*.p12
+
+# .NET 10 / C# workload runner and optimizer coordinator
+bin/
+obj/
+TestResults/
+artifacts/
+packages/
+*.user
+*.suo
+*.rsuser
+*.userosscache
+*.sln.docstates
+*.nupkg
+*.snupkg
+*.coverage
+*.coveragexml
+coverage/
+coverage.cobertura.xml
+*.trx
+.dotnet-home/
+.dotnet-cli-home/
+
+# Python 3.14 / FastAPI rewrite service
+__pycache__/
+*.py[cod]
+*$py.class
+.python-version
+.venv/
+venv/
+env/
+ENV/
+.mypy_cache/
+.pytest_cache/
+pytest-cache-files-*/
+.ruff_cache/
+.uv-cache/
+.pyre/
+.tox/
+.nox/
+.coverage
+.coverage.*
+htmlcov/
+dist/
+build/
+*.egg-info/
+pip-wheel-metadata/
+
+# Uvicorn / FastAPI runtime
+.uvicorn/
+uvicorn*.log
+
+# PostgreSQL 18 data, dumps, and benchmark database artifacts
+pgdata/
+postgres-data/
+postgres_data/
+metadata-db-data/
+target-db-data/
+*.dump
+*.backup
+*.sql.gz
+*.psql
+*.pgpass
+
+# Docker Compose local artifacts
+.docker/
+docker-compose.override.yml
+compose.override.yml
+*.dockerbuild
+
+# Benchmark datasets and generated workloads
+data/
+data/*
+datasets/
+benchmark-data/
+workloads/generated/
+queries/generated/
+queries/job-imdb/
+results/
+reports/generated/
+
+# TPC-H / data-loader generated files
+dbgen/
+qgen/
+*.tbl
+*.tbl.*
+*.csv
+*.csv.gz
+
+# ClickBench / JOB / STATS-CEB downloaded data
+clickbench/
+imdb/
+job-imdb/
+stats-ceb/
+
+# Ollama / local model artifacts
+.ollama/
+ollama/
+models/
+*.gguf
+*.safetensors
+*.bin
+
+# Prometheus and Grafana local state
+prometheus-data/
+grafana-data/
+grafana-storage/
+*.prom
+
+# Generated experiment outputs
+experiment-runs/
+metrics/
+dashboard-screenshots/
+explain-plans/
+EXPLAIN/
+
+# Committed raw run-data bundles
+!experiment-artifacts/
+experiment-artifacts/*
+!experiment-artifacts/.gitkeep
+!experiment-artifacts/*-raw-run-data.zip
+!experiment-artifacts/*-SHA256SUMS.txt

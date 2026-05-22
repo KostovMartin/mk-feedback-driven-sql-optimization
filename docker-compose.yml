@@ -1,0 +1,167 @@
+services:
+  target-db:
+    image: postgres:18.3
+    cpus: "8.00"
+    mem_limit: "16g"
+    environment:
+      POSTGRES_DB: tpch
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
+    volumes:
+      - target-db-data:/var/lib/postgresql
+      - ./config/postgresql.conf:/etc/postgresql/postgresql.conf:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d tpch"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  metadata-db:
+    image: postgres:18.3
+    cpus: "2.00"
+    mem_limit: "1g"
+    environment:
+      POSTGRES_DB: optimizer
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - metadata-db-data:/var/lib/postgresql
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d optimizer"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  ollama:
+    image: ollama/ollama:0.20.7
+    profiles: ["llm-local"]
+    cpus: "16.00"
+    mem_limit: "40g"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    environment:
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-models:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+
+  data-loader:
+    build:
+      context: ./data-loader
+    cpus: "4.00"
+    mem_limit: "4g"
+    environment:
+      BENCHMARK: "${BENCHMARK:-smoke}"
+      TARGET_DB_HOST: target-db
+      TARGET_DB_NAME: tpch
+      TARGET_DB_USER: postgres
+      TARGET_DB_PASSWORD: postgres
+      METADATA_DB_HOST: metadata-db
+      METADATA_DB_NAME: optimizer
+      METADATA_DB_USER: postgres
+      METADATA_DB_PASSWORD: postgres
+    volumes:
+      - ./tests/smoke/data:/workspace/tests/smoke/data:ro
+      - ./sql:/workspace/sql:ro
+    depends_on:
+      target-db:
+        condition: service_healthy
+      metadata-db:
+        condition: service_healthy
+
+  rewrite-service:
+    build:
+      context: ./src/rewrite-service
+    cpus: "2.00"
+    mem_limit: "1g"
+    environment:
+      TARGET_DB_CONNECTION: postgresql://postgres:postgres@target-db:5432/tpch
+      ENABLE_RULES: "${ENABLE_RULES:-true}"
+      ENABLE_LLM: "${ENABLE_LLM:-false}"
+      MODEL_PROVIDER: "${MODEL_PROVIDER:-ollama}"
+      OLLAMA_URL: http://ollama:11434
+      DEFAULT_MODEL: "${DEFAULT_MODEL:-}"
+      TEMPERATURE: "${TEMPERATURE:-0.7}"
+    ports:
+      - "8081:8081"
+    depends_on:
+      target-db:
+        condition: service_healthy
+      ollama:
+        condition: service_healthy
+        required: false
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8081/health', timeout=2)"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  workload-runner:
+    build:
+      context: .
+      dockerfile: src/QueryOptimizer.WorkloadRunner/Dockerfile
+    cpus: "2.00"
+    mem_limit: "1g"
+    environment:
+      TARGET_DB_CONNECTION: Host=target-db;Port=5432;Database=tpch;Username=postgres;Password=postgres;GSS Encryption Mode=Disable
+      METADATA_DB_CONNECTION: Host=metadata-db;Port=5432;Database=optimizer;Username=postgres;Password=postgres;GSS Encryption Mode=Disable
+      REWRITE_SERVICE_URL: http://rewrite-service:8081
+      QUERIES_PATH: /app/queries
+      PARAMETERS_PATH: /app/parameters
+      WORKLOAD_MANIFEST_FILE: "${WORKLOAD_MANIFEST_FILE:-/app/workload-manifest/workload-manifest.json}"
+      EXPERIMENT_RUN_ID: "${EXPERIMENT_RUN_ID:-local-run}"
+      RUN_HELD_OUT_EVALUATION: "${RUN_HELD_OUT_EVALUATION:-false}"
+      ALLOWED_RULE_FAMILIES: "${ALLOWED_RULE_FAMILIES:-A,B,C,D,E}"
+      OPTIMIZER_MIN_EXECUTION_COUNT: "${OPTIMIZER_MIN_EXECUTION_COUNT:-10}"
+      OPTIMIZER_PROFILE: "${OPTIMIZER_PROFILE:-controlled}"
+      MODEL_PROVIDER: "${MODEL_PROVIDER:-ollama}"
+      DEFAULT_MODEL: "${DEFAULT_MODEL:-}"
+      ENABLE_RULES: "${ENABLE_RULES:-true}"
+      ENABLE_LLM: "${ENABLE_LLM:-false}"
+      MAX_LLM_CANDIDATES: "${MAX_LLM_CANDIDATES:-0}"
+      MODEL_TIMEOUT_SECONDS: "${MODEL_TIMEOUT_SECONDS:-30}"
+      TEMPERATURE: "${TEMPERATURE:-0.7}"
+      REWRITE_SERVICE_HTTP_TIMEOUT_SECONDS: "${REWRITE_SERVICE_HTTP_TIMEOUT_SECONDS:-120}"
+      EQUIVALENCE_TIMEOUT_MS: "${EQUIVALENCE_TIMEOUT_MS:-60000}"
+      EQUIVALENCE_MAX_ROWS_FULL_COMPARE: "${EQUIVALENCE_MAX_ROWS_FULL_COMPARE:-100000}"
+      BENCHMARK_ITERATIONS: "${BENCHMARK_ITERATIONS:-5}"
+      PROMOTION_ALPHA: "${PROMOTION_ALPHA:-0.05}"
+      PROMOTION_MIN_IMPROVEMENT_PCT: "${PROMOTION_MIN_IMPROVEMENT_PCT:-2.0}"
+      PROMOTION_MAX_CANDIDATE_CV: "${PROMOTION_MAX_CANDIDATE_CV:-0.3}"
+      HOST_CPU_MODEL: "${HOST_CPU_MODEL:-unknown}"
+      HOST_LOGICAL_PROCESSOR_COUNT: "${HOST_LOGICAL_PROCESSOR_COUNT:-unknown}"
+      HOST_TOTAL_MEMORY_BYTES: "${HOST_TOTAL_MEMORY_BYTES:-unknown}"
+      HOST_OS_DESCRIPTION: "${HOST_OS_DESCRIPTION:-unknown}"
+      DOCKER_VERSION: "${DOCKER_VERSION:-unknown}"
+      DOCKER_COMPOSE_VERSION: "${DOCKER_COMPOSE_VERSION:-unknown}"
+    volumes:
+      - ./tests/smoke/queries:/app/queries:ro
+      - ./tests/smoke/parameters:/app/parameters:ro
+      - ${WORKLOAD_MANIFEST_HOST_PATH:-./tests/smoke/controlled-pilot-corpus.json}:/app/workload-manifest/workload-manifest.json:ro
+    depends_on:
+      data-loader:
+        condition: service_completed_successfully
+      rewrite-service:
+        condition: service_healthy
+
+volumes:
+  target-db-data:
+  metadata-db-data:
+  ollama-models:

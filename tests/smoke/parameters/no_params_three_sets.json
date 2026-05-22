@@ -1,0 +1,14 @@
+[
+  {
+    "parameter_set_id": "static-smoke-001",
+    "parameters": []
+  },
+  {
+    "parameter_set_id": "static-smoke-002",
+    "parameters": []
+  },
+  {
+    "parameter_set_id": "static-smoke-003",
+    "parameters": []
+  }
+]

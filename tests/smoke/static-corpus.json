@@ -1,0 +1,66 @@
+[
+  {
+    "query_file": "rule_a1_redundant_predicate.sql",
+    "parameter_file": "no_params_three_sets.json",
+    "held_out_parameter_file": null,
+    "expected_candidate_source_detail": "rule:predicate_redundant_elimination",
+    "workload_label": "static_a1_redundant_predicate",
+    "workload_description": "Static-rule smoke case for rule:predicate_redundant_elimination."
+  },
+  {
+    "query_file": "rule_a2_boolean_simplification.sql",
+    "parameter_file": "partkey_threshold_params.json",
+    "held_out_parameter_file": null,
+    "expected_candidate_source_detail": "rule:boolean_simplification",
+    "workload_label": "static_a2_boolean_simplification",
+    "workload_description": "Static-rule smoke case for rule:boolean_simplification."
+  },
+  {
+    "query_file": "rule_a3_comparison_normalization.sql",
+    "parameter_file": "partkey_threshold_params.json",
+    "held_out_parameter_file": null,
+    "expected_candidate_source_detail": "rule:comparison_normalization",
+    "workload_label": "static_a3_comparison_normalization",
+    "workload_description": "Static-rule smoke case for rule:comparison_normalization."
+  },
+  {
+    "query_file": "rule_b1_in_to_exists.sql",
+    "parameter_file": "supplycost_threshold_params.json",
+    "held_out_parameter_file": null,
+    "expected_candidate_source_detail": "rule:in_to_exists",
+    "workload_label": "static_b1_in_to_exists_nullable_subquery",
+    "workload_description": "Static-rule smoke case for rule:in_to_exists."
+  },
+  {
+    "query_file": "rule_b5_count_gt_zero_to_exists.sql",
+    "parameter_file": "rule_b5_count_gt_zero_to_exists_params.json",
+    "held_out_parameter_file": null,
+    "expected_candidate_source_detail": "rule:count_gt_zero_to_exists",
+    "workload_label": "static_b5_count_exists_optimizer_gap",
+    "workload_description": "Static-rule smoke case for rule:count_gt_zero_to_exists."
+  },
+  {
+    "query_file": "rule_c1_implicit_to_explicit_join.sql",
+    "parameter_file": "supplycost_threshold_params.json",
+    "held_out_parameter_file": null,
+    "expected_candidate_source_detail": "rule:implicit_to_explicit_join",
+    "workload_label": "static_c1_implicit_to_explicit_join",
+    "workload_description": "Static-rule smoke case for rule:implicit_to_explicit_join."
+  },
+  {
+    "query_file": "rule_d2_redundant_group_by.sql",
+    "parameter_file": "no_params_three_sets.json",
+    "held_out_parameter_file": null,
+    "expected_candidate_source_detail": "rule:redundant_group_by_elimination",
+    "workload_label": "static_d2_redundant_group_by",
+    "workload_description": "Static-rule smoke case for rule:redundant_group_by_elimination."
+  },
+  {
+    "query_file": "rule_e2_subquery_column_prune.sql",
+    "parameter_file": "no_params_three_sets.json",
+    "held_out_parameter_file": null,
+    "expected_candidate_source_detail": "rule:subquery_column_prune",
+    "workload_label": "static_e2_subquery_column_prune",
+    "workload_description": "Static-rule smoke case for rule:subquery_column_prune."
+  }
+]

@@ -1,0 +1,107 @@
+services:
+  tpch-generator:
+    build:
+      context: ./tpch-generator
+      args:
+        DUCKDB_VERSION: "${DUCKDB_VERSION:-1.5.2}"
+    cpus: "4.00"
+    mem_limit: "4g"
+    environment:
+      TPCH_FORCE_GENERATE: "${TPCH_FORCE_GENERATE:-false}"
+      TPCH_OUTPUT_ROOT: /workspace/tpch
+      TPCH_SCALE_FACTOR: "${TPCH_SCALE_FACTOR:-1}"
+      TARGET_DB_HOST: target-db
+      TARGET_DB_PORT: "5432"
+      TARGET_DB_NAME: tpch
+      TARGET_DB_USER: postgres
+      TARGET_DB_PASSWORD: postgres
+    volumes:
+      - ${TPCH_ARTIFACT_ROOT_HOST_PATH:-./benchmark-data/tpch}:/workspace/tpch
+    depends_on:
+      target-db:
+        condition: service_healthy
+
+  data-loader:
+    environment:
+      BENCHMARK: tpch
+    depends_on:
+      tpch-generator:
+        condition: service_completed_successfully
+
+  ollama-model-pull:
+    image: ollama/ollama:0.20.7
+    profiles: ["llm-local"]
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+      DEFAULT_MODEL: "${DEFAULT_MODEL:-}"
+    entrypoint:
+      - /bin/sh
+      - -lc
+    command:
+      - |
+        set -eu
+        ollama pull "$${DEFAULT_MODEL}"
+    depends_on:
+      ollama:
+        condition: service_healthy
+
+  rewrite-service:
+    environment:
+      ENABLE_RULES: "${TPCH_ENABLE_RULES:-false}"
+      ENABLE_LLM: "${TPCH_ENABLE_LLM:-false}"
+      DEFAULT_MODEL: "${DEFAULT_MODEL:-}"
+      TEMPERATURE: "${TPCH_TEMPERATURE:-0.5}"
+    depends_on:
+      ollama-model-pull:
+        condition: service_completed_successfully
+        required: false
+
+  workload-runner:
+    environment:
+      OPTIMIZER_PROFILE: "${TPCH_OPTIMIZER_PROFILE:-tpch}"
+      QUERIES_PATH: "${TPCH_QUERIES_PATH:-/app/tpch/queries}"
+      PARAMETERS_PATH: "${TPCH_PARAMETERS_PATH:-/app/tpch/parameters}"
+      WORKLOAD_MANIFEST_FILE: "${TPCH_WORKLOAD_MANIFEST_FILE-/app/tpch/tpch-duckdb-corpus.json}"
+      EXPERIMENT_RUN_ID: "${TPCH_RESULT_RUN_ID:-latest}"
+      RUN_HELD_OUT_EVALUATION: "${TPCH_RUN_HELD_OUT_EVALUATION:-false}"
+      ENABLE_RULES: "${TPCH_ENABLE_RULES:-false}"
+      ENABLE_LLM: "${TPCH_ENABLE_LLM:-false}"
+      DEFAULT_MODEL: "${DEFAULT_MODEL:-}"
+      MAX_LLM_CANDIDATES: "${TPCH_MAX_LLM_CANDIDATES:-1}"
+      MODEL_TIMEOUT_SECONDS: "${TPCH_MODEL_TIMEOUT_SECONDS:-600}"
+      REWRITE_SERVICE_HTTP_TIMEOUT_SECONDS: "${TPCH_REWRITE_SERVICE_HTTP_TIMEOUT_SECONDS:-1800}"
+      EQUIVALENCE_TIMEOUT_MS: "${TPCH_EQUIVALENCE_TIMEOUT_MS:-900000}"
+      EQUIVALENCE_MAX_ROWS_FULL_COMPARE: "${TPCH_EQUIVALENCE_MAX_ROWS_FULL_COMPARE:-100000}"
+      VALIDATION_PARAMETER_SET_LIMIT: "${TPCH_VALIDATION_PARAMETER_SET_LIMIT:-3}"
+      CAPTURE_EXPLAIN_PLANS: "${TPCH_CAPTURE_EXPLAIN_PLANS:-false}"
+      TEMPERATURE: "${TPCH_TEMPERATURE:-0.5}"
+      BENCHMARK_ITERATIONS: "${TPCH_BENCHMARK_ITERATIONS:-1}"
+      OPTIMIZER_MIN_EXECUTION_COUNT: "${TPCH_MIN_PROMOTION_PAIRS:-10}"
+      PROMOTION_ALPHA: "${TPCH_PROMOTION_ALPHA:-0.05}"
+      PROMOTION_MIN_IMPROVEMENT_PCT: "${TPCH_PROMOTION_MIN_IMPROVEMENT_PCT:-2.0}"
+      PROMOTION_MAX_CANDIDATE_CV: "${TPCH_PROMOTION_MAX_CANDIDATE_CV:-0.3}"
+      BANDIT_STRATEGY: "${TPCH_BANDIT_STRATEGY:-thompson}"
+      BANDIT_RANDOM_SEED: "${TPCH_BANDIT_RANDOM_SEED:-12345}"
+      BANDIT_OBSERVATION_VARIANCE: "${TPCH_BANDIT_OBSERVATION_VARIANCE:-0.1}"
+      UCB1_EXPLORATION_COEFFICIENT: "${TPCH_UCB1_EXPLORATION_COEFFICIENT:-1.4142135623730951}"
+      BACKGROUND_OPTIMIZER_ROUNDS: "${TPCH_BACKGROUND_OPTIMIZER_ROUNDS:-1}"
+      BACKGROUND_OPTIMIZER_PARAMETER_LIMIT: "${TPCH_BACKGROUND_OPTIMIZER_PARAMETER_LIMIT:-30}"
+    volumes:
+      - ${TPCH_ARTIFACT_ROOT_HOST_PATH:-./benchmark-data/tpch}/sf${TPCH_SCALE_FACTOR:-1}:/app/tpch:ro
+
+  tpch-results-exporter:
+    image: postgres:18.3
+    environment:
+      METADATA_DB_HOST: metadata-db
+      METADATA_DB_PORT: "5432"
+      METADATA_DB_NAME: optimizer
+      METADATA_DB_USER: postgres
+      METADATA_DB_PASSWORD: postgres
+      TPCH_RESULT_RUN_ID: "${TPCH_RESULT_RUN_ID:-latest}"
+    command: ["sh", "/workspace/scripts/export-tpch-results.sh"]
+    volumes:
+      - ./scripts/export-tpch-results.sh:/workspace/scripts/export-tpch-results.sh:ro
+      - ${TPCH_RESULTS_HOST_PATH:-./experiment-runs/tpch-compose}:/workspace/results
+    depends_on:
+      metadata-db:
+        condition: service_healthy

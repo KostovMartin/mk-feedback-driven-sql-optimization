@@ -1,0 +1,12 @@
+[
+  { "parameter_set_id": "controlled-held-out-001", "parameters": [{ "position": "$1", "type": "numeric", "value": 175 }] },
+  { "parameter_set_id": "controlled-held-out-002", "parameters": [{ "position": "$1", "type": "numeric", "value": 225 }] },
+  { "parameter_set_id": "controlled-held-out-003", "parameters": [{ "position": "$1", "type": "numeric", "value": 275 }] },
+  { "parameter_set_id": "controlled-held-out-004", "parameters": [{ "position": "$1", "type": "numeric", "value": 325 }] },
+  { "parameter_set_id": "controlled-held-out-005", "parameters": [{ "position": "$1", "type": "numeric", "value": 375 }] },
+  { "parameter_set_id": "controlled-held-out-006", "parameters": [{ "position": "$1", "type": "numeric", "value": 425 }] },
+  { "parameter_set_id": "controlled-held-out-007", "parameters": [{ "position": "$1", "type": "numeric", "value": 475 }] },
+  { "parameter_set_id": "controlled-held-out-008", "parameters": [{ "position": "$1", "type": "numeric", "value": 525 }] },
+  { "parameter_set_id": "controlled-held-out-009", "parameters": [{ "position": "$1", "type": "numeric", "value": 575 }] },
+  { "parameter_set_id": "controlled-held-out-010", "parameters": [{ "position": "$1", "type": "numeric", "value": 625 }] }
+]
